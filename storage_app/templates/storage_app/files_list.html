@@ -12,13 +12,9 @@
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="{% url 'storage_app:files_list' %}">Raiz</a></li>
-    {% if prefix %}
-      {% for part in prefix.split('/') %}
-        {% if part %}
-          <li class="breadcrumb-item active" aria-current="page">{{ part }}</li>
-        {% endif %}
-      {% endfor %}
-    {% endif %}
+    {% for part in breadcrumb_parts %}
+      <li class="breadcrumb-item active" aria-current="page">{{ part }}</li>
+    {% endfor %}
   </ol>
 </nav>
 
