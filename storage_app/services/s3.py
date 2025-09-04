@@ -2,6 +2,8 @@ import logging
 import os
 from django.conf import settings
 import boto3
+import io
+from zipfile import ZipFile
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
@@ -113,3 +115,28 @@ def delete_object_version(key, version_id):
     except ClientError as e:
         logger.error(f"Erro ao deletar versão do objeto: {e}")
         return False
+        
+def get_all_objects_in_prefix(prefix):
+    """Lista TODOS os objetos sob um determinado prefixo, lidando com paginação."""
+    s3 = get_s3_client()
+    paginator = s3.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=settings.AWS_S3_BUCKET_NAME, Prefix=prefix)
+    
+    files = []
+    for page in pages:
+        if "Contents" in page:
+            for obj in page["Contents"]:
+                files.append(obj)
+    return files
+
+def download_object_to_memory(key):
+    """Baixa um único objeto do S3 para um buffer em memória."""
+    s3 = get_s3_client()
+    try:
+        in_memory_file = io.BytesIO()
+        s3.download_fileobj(settings.AWS_S3_BUCKET_NAME, key, in_memory_file)
+        in_memory_file.seek(0) # Retorna o cursor para o início do arquivo
+        return in_memory_file
+    except ClientError as e:
+        logger.error(f"Erro ao baixar objeto {key} para a memória: {e}")
+        return None
