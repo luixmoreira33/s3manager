@@ -23,6 +23,7 @@ def files_list(request):
     else:
         context = {
             "files": response.get("Contents", []),
+            "folders": response.get("CommonPrefixes", []),
             "prefix": prefix,
             "next_token": response.get("NextContinuationToken"),
         }
