@@ -4,9 +4,10 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404, HttpResponseBadRequest, HttpResponse
 from urllib.parse import unquote
-
+import io
+from zipfile import ZipFile
 from .forms import UploadFileForm
 from .services import s3
 
@@ -117,3 +118,39 @@ def delete_version(request):
         return redirect("storage_app:versions_list", key=key)
     
     return redirect("storage_app:files_list")
+
+@login_required
+def download_folder(request):
+    prefix = request.GET.get("prefix")
+    if not prefix:
+        messages.error(request, "Prefixo da pasta não especificado.")
+        return redirect("storage_app:files_list")
+
+    # Lista todos os objetos no prefixo
+    objects_to_download = s3.get_all_objects_in_prefix(prefix)
+    
+    # Prepara o arquivo zip em memória
+    zip_buffer = io.BytesIO()
+    with ZipFile(zip_buffer, 'w') as zip_file:
+        for obj in objects_to_download:
+            # Não tentamos zipar a própria "pasta" (objeto de 0 bytes)
+            if obj['Size'] > 0:
+                file_key = obj['Key']
+                
+                # Baixa o arquivo do S3 para a memória
+                file_content = s3.download_object_to_memory(file_key)
+                
+                if file_content:
+                    # Adiciona o arquivo ao zip, mantendo a estrutura de pastas
+                    # Remove o prefixo principal para ter caminhos relativos no zip
+                    file_path_in_zip = file_key.replace(prefix, "", 1)
+                    zip_file.writestr(file_path_in_zip, file_content.read())
+
+    zip_buffer.seek(0)
+    
+    # Prepara a resposta HTTP
+    folder_name = prefix.strip('/').split('/')[-1]
+    response = HttpResponse(zip_buffer, content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename="{folder_name}.zip"'
+    
+    return response
