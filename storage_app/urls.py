@@ -10,4 +10,5 @@ urlpatterns = [
     path("versions/<path:key>/", views.versions_list, name="versions_list"),
     path("download-version/", views.download_version, name="download_version"),
     path("delete-version/", views.delete_version, name="delete_version"),
+    path("download-folder/", views.download_folder, name="download_folder"),
 ]
