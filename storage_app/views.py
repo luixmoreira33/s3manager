@@ -18,14 +18,20 @@ def files_list(request):
     
     response = s3.list_objects(prefix=prefix, continuation_token=token)
 
+    # --- Início da Alteração ---
+    # Transforma a string do prefixo em uma lista para o "breadcrumb" (navegação)
+    breadcrumb_parts = prefix.strip('/').split('/') if prefix else []
+    # --- Fim da Alteração ---
+
     if response is None:
         messages.error(request, "Não foi possível listar os arquivos do S3. Verifique a configuração.")
-        context = {"files": [], "prefix": prefix}
+        context = {"files": [], "folders": [], "prefix": prefix}
     else:
         context = {
             "files": response.get("Contents", []),
             "folders": response.get("CommonPrefixes", []),
             "prefix": prefix,
+            "breadcrumb_parts": breadcrumb_parts, # <-- Passa a nova lista para o template
             "next_token": response.get("NextContinuationToken"),
         }
     return render(request, "storage_app/files_list.html", context)
