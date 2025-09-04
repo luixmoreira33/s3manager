@@ -50,7 +50,7 @@
         <td>--</td>
         <td>--</td>
         <td>
-          <a href="#" class="btn btn-secondary btn-sm disabled">Baixar Pasta</a>
+          <a href="{% url 'storage_app:download_folder' %}?prefix={{ folder.Prefix }}" class="btn btn-primary btn-sm">Baixar Pasta</a>
         </td>
       </tr>
       {% endfor %}
