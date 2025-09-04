@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %}Versões de {{ key }} - S3 File Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Versões de: <code>{{ key }}</code></h2>
+    <a href="{% url 'storage_app:files_list' %}" class="btn btn-secondary">Voltar para a Lista</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Version ID</th>
+                <th>Tamanho</th>
+                <th>Data Modificação</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for version in versions %}
+            <tr>
+                <td>
+                    <small>{{ version.VersionId }}</small>
+                </td>
+                <td>{{ version.Size|filesizeformat }}</td>
+                <td>{{ version.LastModified }}</td>
+                <td>
+                    {% if version.IsLatest %}
+                        <span class="badge bg-success">Última Versão</span>
+                    {% endif %}
+                    {% if 'Size' not in version %}
+                        <span class="badge bg-danger">Marcador de Exclusão</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if 'Size' in version %}
+                    <a href="{% url 'storage_app:download_version' %}?key={{ key }}&version_id={{ version.VersionId }}" class="btn btn-success btn-sm">Baixar esta Versão</a>
+                    {% endif %}
+                    
+                    {% if user.is_staff %}
+                    <form action="{% url 'storage_app:delete_version' %}" method="post" class="d-inline" onsubmit="return confirm('Tem certeza que deseja apagar esta versão permanentemente? Esta ação não pode ser desfeita.');">
+                        {% csrf_token %}
+                        <input type="hidden" name="key" value="{{ key }}">
+                        <input type="hidden" name="version_id" value="{{ version.VersionId }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Apagar Versão</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center">Nenhuma versão encontrada para este arquivo.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Upload de Arquivo - S3 File Manager{% endblock %}
+
+{% block content %}
+<h2>Fazer Upload de Arquivo</h2>
+<div class="card mt-3">
+  <div class="card-body">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mb-3">
+        {{ form.file.label_tag }}
+        {{ form.file }}
+        {% if form.file.errors %}
+          <div class="invalid-feedback d-block">{{ form.file.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="mb-3">
+        {{ form.key.label_tag }}
+        {{ form.key }}
+        <div class="form-text">{{ form.key.help_text }}</div>
+        {% if form.key.errors %}
+           <div class="invalid-feedback d-block">{{ form.key.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <button type="submit" class="btn btn-primary">Enviar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

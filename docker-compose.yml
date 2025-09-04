@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - db # Opcional se usar Postgres, etc.
+
+  db: # Exemplo de banco de dados, não necessário para o SQLite padrão
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=yourdb
+      - POSTGRES_USER=youruser
+      - POSTGRES_PASSWORD=yourpassword
+
+volumes:
+  postgres_data:

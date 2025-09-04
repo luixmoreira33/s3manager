@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load custom_filters %}
+
+{% block title %}Lista de Arquivos - S3 File Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Arquivos no Bucket</h2>
+  <a href="{% url 'storage_app:file_upload' %}" class="btn btn-primary">Fazer Upload</a>
+</div>
+
+<form method="get" class="mb-3">
+  <div class="input-group">
+    <input type="text" name="prefix" class="form-control" placeholder="Buscar por prefixo (ex: pasta/)..." value="{{ prefix|default:'' }}">
+    <button class="btn btn-outline-secondary" type="submit">Buscar</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Arquivo (Key)</th>
+        <th>Tamanho</th>
+        <th>Última Modificação</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for file in files %}
+      <tr>
+        <td>{{ file.Key }}</td>
+        <td>{{ file.Size|filesizeformat }}</td>
+        <td>{{ file.LastModified }}</td>
+        <td>
+          <a href="{% url 'storage_app:download_file' %}?key={{ file.Key }}" class="btn btn-success btn-sm">Baixar</a>
+          <a href="{% url 'storage_app:versions_list' key=file.Key %}" class="btn btn-info btn-sm">Versões</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="4" class="text-center">Nenhum arquivo encontrado.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if next_token %}
+<nav>
+  <ul class="pagination">
+    <li class="page-item">
+      <a class="page-link" href="?prefix={{ prefix|default:'' }}&token={{ next_token }}">Próxima Página</a>
+    </li>
+  </ul>
+</nav>
+{% endif %}
+
+{% endblock %}
