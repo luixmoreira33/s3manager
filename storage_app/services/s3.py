@@ -1,4 +1,5 @@
 import logging
+import os
 from django.conf import settings
 import boto3
 from botocore.exceptions import ClientError
@@ -51,9 +52,15 @@ def upload_fileobj(fileobj, key, content_type):
 def generate_presigned_url(key, version_id=None, expires_in=300):
     """Gera uma URL pré-assinada para download."""
     s3 = get_s3_client()
+
+    # Extrai o nome do arquivo da chave completa
+    filename = os.path.basename(key)
+
     params = {
         "Bucket": settings.AWS_S3_BUCKET_NAME,
         "Key": key,
+        # A linha mágica que força o download!
+        "ResponseContentDisposition": f'attachment; filename="{filename}"'
     }
     if version_id:
         params["VersionId"] = version_id
