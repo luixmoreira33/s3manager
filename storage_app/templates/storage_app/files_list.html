@@ -9,6 +9,19 @@
   <a href="{% url 'storage_app:file_upload' %}" class="btn btn-primary">Fazer Upload</a>
 </div>
 
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'storage_app:files_list' %}">Raiz</a></li>
+    {% if prefix %}
+      {% for part in prefix.split('/') %}
+        {% if part %}
+          <li class="breadcrumb-item active" aria-current="page">{{ part }}</li>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  </ol>
+</nav>
+
 <form method="get" class="mb-3">
   <div class="input-group">
     <input type="text" name="prefix" class="form-control" placeholder="Buscar por prefixo (ex: pasta/)..." value="{{ prefix|default:'' }}">
@@ -27,21 +40,40 @@
       </tr>
     </thead>
     <tbody>
-      {% for file in files %}
+      {% for folder in folders %}
       <tr>
-        <td>{{ file.Key }}</td>
-        <td>{{ file.Size|filesizeformat }}</td>
-        <td>{{ file.LastModified }}</td>
         <td>
-          <a href="{% url 'storage_app:download_file' %}?key={{ file.Key }}" class="btn btn-success btn-sm">Baixar</a>
-          <a href="{% url 'storage_app:versions_list' key=file.Key %}" class="btn btn-info btn-sm">Versões</a>
+          <a href="{% url 'storage_app:files_list' %}?prefix={{ folder.Prefix }}">
+            📁 {{ folder.Prefix|cut:prefix }}
+          </a>
+        </td>
+        <td>--</td>
+        <td>--</td>
+        <td>
+          <a href="#" class="btn btn-secondary btn-sm disabled">Baixar Pasta</a>
         </td>
       </tr>
-      {% empty %}
-      <tr>
-        <td colspan="4" class="text-center">Nenhum arquivo encontrado.</td>
-      </tr>
       {% endfor %}
+
+      {% for file in files %}
+        {% if file.Size > 0 %} {# Não mostra a própria pasta como um arquivo de 0 bytes #}
+        <tr>
+          <td>📄 {{ file.Key|cut:prefix }}</td>
+          <td>{{ file.Size|filesizeformat }}</td>
+          <td>{{ file.LastModified }}</td>
+          <td>
+            <a href="{% url 'storage_app:download_file' %}?key={{ file.Key }}" class="btn btn-success btn-sm">Baixar</a>
+            <a href="{% url 'storage_app:versions_list' key=file.Key %}" class="btn btn-info btn-sm">Versões</a>
+          </td>
+        </tr>
+        {% endif %}
+      {% endfor %}
+      
+      {% if not folders and not files %}
+      <tr>
+        <td colspan="4" class="text-center">Nenhum arquivo ou pasta encontrado.</td>
+      </tr>
+      {% endif %}
     </tbody>
   </table>
 </div>
@@ -55,5 +87,4 @@
   </ul>
 </nav>
 {% endif %}
-
 {% endblock %}
