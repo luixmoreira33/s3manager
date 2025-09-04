@@ -24,7 +24,7 @@ def list_objects(prefix="", continuation_token=None):
     try:
         params = {
             "Bucket": settings.AWS_S3_BUCKET_NAME,
-            "Prefix": prefix
+            "Prefix": prefix,
             "Delimiter": "/",
             "MaxKeys": 50,
         }
